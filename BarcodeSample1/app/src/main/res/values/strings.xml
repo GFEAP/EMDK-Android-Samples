@@ -12,4 +12,13 @@
     <string name="scan">Scan</string>
     <string name="status">Status:</string>
     <string name="data">Data:</string>
+    <string name="landscape_select_decoders">Select Decoders:</string>
+    <string name="landscape_ean8">EAN8</string>
+    <string name="landscape_ean13">EAN13</string>
+    <string name="landscape_code39">Code39</string>
+    <string name="landscape_code128">Code128</string>
+    <string name="landscape_scan">Scan</string>
+    <string name="landscape_status">Status:</string>
+    <string name="landscape_data">Data:</string>
+    <string name="landscape_select_scanner">Select Scanner:</string>
 </resources>
