@@ -7,6 +7,7 @@ package com.symbol.barcodesample1;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.symbol.emdk.EMDKManager;
 import com.symbol.emdk.EMDKResults;
@@ -79,18 +80,18 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        deviceList = new ArrayList<ScannerInfo>();
+        deviceList = new ArrayList<>();
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         setDefaultOrientation();
 
-        textViewData = (TextView)findViewById(R.id.textViewData);
-        textViewStatus = (TextView)findViewById(R.id.textViewStatus);
-        checkBoxEAN8 = (CheckBox)findViewById(R.id.checkBoxEAN8);
-        checkBoxEAN13 = (CheckBox)findViewById(R.id.checkBoxEAN13);
-        checkBoxCode39 = (CheckBox)findViewById(R.id.checkBoxCode39);
-        checkBoxCode128 = (CheckBox)findViewById(R.id.checkBoxCode128);
-        spinnerScannerDevices = (Spinner)findViewById(R.id.spinnerScannerDevices);
+        textViewData = findViewById(R.id.textViewData);
+        textViewStatus = findViewById(R.id.textViewStatus);
+        checkBoxEAN8 = findViewById(R.id.checkBoxEAN8);
+        checkBoxEAN13 = findViewById(R.id.checkBoxEAN13);
+        checkBoxCode39 = findViewById(R.id.checkBoxCode39);
+        checkBoxCode128 = findViewById(R.id.checkBoxCode128);
+        spinnerScannerDevices = findViewById(R.id.spinnerScannerDevices);
 
         EMDKResults results = EMDKManager.getEMDKManager(getApplicationContext(), this);
         if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
@@ -231,7 +232,7 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
         String scannerName = "";
         String statusExtScanner = connectionState.toString();
         String scannerNameExtScanner = scannerInfo.getFriendlyName();
-        if (deviceList.size() != 0) {
+        if (!deviceList.isEmpty()) {
             scannerName = deviceList.get(scannerIndex).getFriendlyName();
         }
         if (scannerName.equalsIgnoreCase(scannerNameExtScanner)) {
@@ -262,7 +263,7 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
 
     private void initScanner() {
         if (scanner == null) {
-            if ((deviceList != null) && (deviceList.size() != 0)) {
+            if ((deviceList != null) && (!deviceList.isEmpty())) {
                 if (barcodeManager != null)
                     scanner = barcodeManager.getDevice(deviceList.get(scannerIndex));
             }
@@ -343,15 +344,13 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
 
     private void enumerateScannerDevices() {
         if (barcodeManager != null) {
-            List<String> friendlyNameList = new ArrayList<String>();
+            List<String> friendlyNameList = new ArrayList<>();
             int spinnerIndex = 0;
             deviceList = barcodeManager.getSupportedDevicesInfo();
-            if ((deviceList != null) && (deviceList.size() != 0)) {
-                Iterator<ScannerInfo> it = deviceList.iterator();
-                while(it.hasNext()) {
-                    ScannerInfo scnInfo = it.next();
+            if ((deviceList != null) && (!deviceList.isEmpty())) {
+                for (ScannerInfo scnInfo : deviceList) {
                     friendlyNameList.add(scnInfo.getFriendlyName());
-                    if(scnInfo.isDefaultScanner()) {
+                    if (scnInfo.isDefaultScanner()) {
                         defaultIndex = spinnerIndex;
                     }
                     ++spinnerIndex;
@@ -360,7 +359,7 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
             else {
                 updateStatus("Failed to get the list of supported scanner devices! Please close and restart the application.");
             }
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, friendlyNameList);
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, friendlyNameList);
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerScannerDevices.setAdapter(spinnerAdapter);
         }
@@ -403,40 +402,28 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
     }
 
     private void updateStatus(final String status){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                textViewStatus.setText("" + status);
-            }
-        });
+        runOnUiThread(() -> textViewStatus.setText(String.format("%s", status)));
     }
 
     private void updateData(final String result){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (result != null) {
-                    if(dataLength ++ > 100) { //Clear the cache after 100 scans
-                        textViewData.setText("");
-                        dataLength = 0;
-                    }
-                    textViewData.append(Html.fromHtml(result));
-                    textViewData.append("\n");
-                    ((View) findViewById(R.id.scrollViewData)).post(new Runnable()
-                    {
-                        public void run()
-                        {
-                            ((ScrollView) findViewById(R.id.scrollViewData)).fullScroll(View.FOCUS_DOWN);
-                        }
-                    });
+        runOnUiThread(() -> {
+            if (result != null) {
+                if(dataLength ++ > 100) { //Clear the cache after 100 scans
+                    textViewData.setText("");
+                    dataLength = 0;
                 }
+                textViewData.append(Html.fromHtml(result,Html.FROM_HTML_MODE_COMPACT));
+                textViewData.append("\n");
+                findViewById(R.id.scrollViewData).post(() -> ((ScrollView) findViewById(R.id.scrollViewData)).fullScroll(View.FOCUS_DOWN));
             }
         });
     }
 
     private void setDefaultOrientation(){
         DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        //obsolete
+        //getWindowManager().getDefaultDisplay().getMetrics(dm);
+        Objects.requireNonNull(this.getDisplay()).getRealMetrics(dm);
         int width = dm.widthPixels;
         int height = dm.heightPixels;
         if(width > height){
